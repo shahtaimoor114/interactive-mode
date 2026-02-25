@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taimoor Shah | Web Designer & Creative Developer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Styles --- */
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --glass: rgba(0, 0, 0, 0.6);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #050505;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- 3D Background Canvas --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Peeche rakha hai */
+        }
+
+        /* --- Camera UI --- */
+        #video-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
+            display: none; /* Initially hidden until start */
+        }
+        #input_video { 
+            width: 100%; height: 100%; object-fit: cover; 
+            transform: scale(-1, 1);
+        }
+        .cam-label {
+            position: absolute;
+            top: 5px; left: 5px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: var(--primary);
+        }
+
+        /* --- Content Layout --- */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--primary); }
+
+        /* Sections General */
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 10%;
+        }
+        
+        /* Hero Section */
+        #hero {
+            align-items: flex-start;
+        }
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+        .hero-content h2 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .hero-content p {
+            max-width: 600px;
+            margin-bottom: 30px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            font-weight: 600;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(79, 172, 254, 0.6);
+        }
+        
+        /* Control Panel Overlay (For Gestures) */
+        #control-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
+            z-index: 100;
+            display: none; /* Show on start */
+        }
+        #control-panel h4 { margin-bottom: 10px; color: var(--primary); }
+        #control-panel p { color: #ccc; margin: 2px 0; }
+
+        /* About & Projects Cards */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-top: 20px;
+            max-width: 800px;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        .skill-tag {
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.9);
+            color: #555;
+            font-size: 0.8rem;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            nav { padding: 20px; }
+            .nav-links { display: none; }
+            #video-container { width: 120px; height: 90px; bottom: 10px; right: 10px; }
+            #control-panel { display: none; } /* Hide controls on mobile to save space, rely on cam */
+        }
+    </style>
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- 3D Canvas Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Camera Feed -->
+    <div id="video-container">
+        <div class="cam-label">AI CAM</div>
+        <video id="input_video" playsinline></video>
+    </div>
+
+    <!-- Gesture Controls Info -->
+    <div id="control-panel">
+        <h4>Gesture Controls</h4>
+        <p>✌️ 2 Fingers: Heart</p>
+        <p>🤟 3 Fingers: Flower</p>
+        <p>🖐 Open: Expand</p>
+        <p>✊ Fist: Smoke</p>
+        <p id="status-text">Status: Waiting...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo">Taimoor Shah</div>
+            <div class="nav-links">
+                <a href="#hero">Home</a>
+                <a href="#about">About</a>
+                <a href="#work">Work</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="hero">
+            <div class="hero-content">
+                <h1>Taimoor Shah<br>Web Designer</h1>
+                <h2>UI & Interactive Experiences</h2>
+                <p>
+                    Hi, I'm Taimoor Shah. I build immersive digital experiences that merge design aesthetics with modern technology. Move your hand over the camera to interact with the background particles.
+                </p>
+                 <p style="font-size: x-small;">start Interactive mode you'll see digitel magic</p>
+                <button class="btn btn-primary" id="start-btn" onclick="startExperience()">
+                   
+                    Start Interactive Mode
+                </button>
+            </div>
+        </section>
+
+         
+         <section id="about">
+            <h2 class="section-title">About Me</h2>
+            <div class="glass-card">
+                <p style="color: #ddd; line-height: 1.8;">
+                    As a passionate Web Designer, I specialize in creating visually stunning and functionally robust websites. My expertise lies in blending creativity with code to deliver user-centric designs that leave a lasting impression.
+                </p>
+                <div style="margin-top: 20px;">
+                    <span class="skill-tag">HTML5 / CSS3</span>
+                    <span class="skill-tag">JavaScript</span>
+                    <span class="skill-tag">Three.js</span>
+                    <span class="skill-tag">UI/UX Design</span>
+                    <span class="skill-tag">Creative Direction</span>
+                </div>
+            </div>
+        </section> 
+
+         
+        <section id="work">
+            <h2 class="section-title">Featured Projects</h2>
+            <div class="glass-card" style="border-left: 4px solid var(--primary);">
+                <h3 style="color: white;">Interactive 3D Portfolio</h3>
+                <p style="color: #aaa;">A WebGL powered portfolio using Three.js and MediaPipe for gesture control.</p>
+            </div>
+            <div class="glass-card" style="margin-top: 20px; border-left: 4px solid var(--secondary);">
+                <h3 style="color: white;">E-Commerce Redesign</h3>
+                
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact">
+            <h2 class="section-title">Get In Touch</h2>
+            <div class="glass-card">
+                <p style="color: #ddd;">Ready to start a project together?</p>
+                <a href="mailto:shahtaimoor114@gmail.com" style="text-decoration: none;">
+                    <button class="btn btn-primary" style="margin-top: 15px;">Contact Me</button>
+                </a>
+            </div>
+        </section>
+
+        <footer>
+            &copy; 2026 Taimoor Shah. All Rights Reserved.
+        </footer>
+    </div>
+
+    <!-- Three.js Module Script -->
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+
+        // --- Config ---
+        const PARTICLE_COUNT = 4000;
+        let currentShape = "sphere";
+        let handPosition = new THREE.Vector3(1000, 1000, 1000); // Start offscreen
+        let fingerCount = 0;
+        let pinchActive = false;
+        let isExperienceStarted = false;
+
+        // --- Three.js Setup ---
+        const canvas = document.getElementById('bg-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // --- Particles ---
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const colors = new Float32Array(PARTICLE_COUNT * 3);
+        const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        
+        // Initial Sphere
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const i3 = i * 3;
+            // Create initial sphere
+            const sPhi = Math.acos(2 * Math.random() - 1);
+            const sTheta = Math.random() * Math.PI * 2;
+            const sR = 2.0;
+            
+            positions[i3] = sR * Math.sin(sPhi) * Math.cos(sTheta);
+            positions[i3 + 1] = sR * Math.sin(sPhi) * Math.sin(sTheta);
+            positions[i3 + 2] = sR * Math.cos(sPhi);
+            
+            targetPositions[i3] = positions[i3];
+            targetPositions[i3 + 1] = positions[i3 + 1];
+            targetPositions[i3 + 2] = positions[i3 + 2];
+            
+            colors[i3] = 1.0; colors[i3+1] = 1.0; colors[i3+2] = 1.0;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.04,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // --- Shape Logic ---
+        function setShapeTarget(type) {
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const i3 = i * 3;
+                let x, y, z;
+
+                if (type === 'heart') {
+                    const t = Math.random() * Math.PI * 2;
+                    x = 16 * Math.pow(Math.sin(t), 3);
+                    y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                    z = (Math.random() - 0.5) * 2;
+                    targetPositions[i3] = x * 0.08;
+                    targetPositions[i3 + 1] = y * 0.08;
+                    targetPositions[i3 + 2] = z * 0.1;
+                } 
+                else if (type === 'flower') {
+                    const k = 5; 
+                    const theta = Math.random() * Math.PI * 2;
+                    const rad = Math.random() * 2;
+                    const petalR = Math.cos(k * theta) * rad;
+                    x = petalR * Math.cos(theta);
+                    y = petalR * Math.sin(theta);
+                    z = (Math.random() - 0.5) * 0.5;
+                    targetPositions[i3] = x;
+                    targetPositions[i3 + 1] = y;
+                    targetPositions[i3 + 2] = z;
+                }
+                else if (type === 'saturn') {
+                    if (i < PARTICLE_COUNT * 0.4) { // Sphere
+                        const phi = Math.acos(2 * Math.random() - 1);
+                        const the = Math.random() * Math.PI * 2;
+                        x = 0.8 * Math.sin(phi) * Math.cos(the);
+                        y = 0.8 * Math.sin(phi) * Math.sin(the);
+                        z = 0.8 * Math.cos(phi);
+                    } else { // Ring
+                        const ringT = Math.random() * Math.PI * 2;
+                        const ringR = 1.5 + Math.random() * 0.5;
+                        x = ringR * Math.cos(ringT);
+                        y = ringR * Math.sin(ringT) * 0.1;
+                        z = (Math.random() - 0.5) * 0.1;
+                    }
+                    targetPositions[i3] = x;
+                    targetPositions[i3 + 1] = y;
+                    targetPositions[i3 + 2] = z;
+                }
+                else if (type === 'expand') {
+                    const expR = 4 + Math.random() * 2;
+                    const expPhi = Math.acos(2 * Math.random() - 1);
+                    const expTheta = Math.random() * Math.PI * 2;
+                    targetPositions[i3] = expR * Math.sin(expPhi) * Math.cos(expTheta);
+                    targetPositions[i3 + 1] = expR * Math.sin(expPhi) * Math.sin(expTheta);
+                    targetPositions[i3 + 2] = expR * Math.cos(expPhi);
+                }
+                else { // Smoke / Default
+                    targetPositions[i3] = (Math.random() - 0.5) * 5;
+                    targetPositions[i3 + 1] = (Math.random() - 0.5) * 5;
+                    targetPositions[i3 + 2] = (Math.random() - 0.5) * 5;
+                }
+            }
+        }
+
+        // --- MediaPipe Logic ---
+        window.startExperience = function() {
+            if (isExperienceStarted) return;
+            isExperienceStarted = true;
+
+            const videoElement = document.getElementById('input_video');
+            const videoContainer = document.getElementById('video-container');
+            const controlPanel = document.getElementById('control-panel');
+            const startBtn = document.getElementById('start-btn');
+
+            // Show UI
+            videoContainer.style.display = 'block';
+            controlPanel.style.display = 'block';
+            startBtn.style.opacity = '0.5';
+            startBtn.innerText = 'Camera Active';
+
+            const mpHands = window.Hands;
+            if (!mpHands) {
+                alert("Error: MediaPipe Hands library not loaded.");
+                return;
+            }
+
+            const hands = new mpHands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.7,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(onResults);
+
+            const mpCamera = new window.Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({ image: videoElement });
+                },
+                width: 640,
+                height: 480
+            });
+            mpCamera.start();
+        }
+
+        function onResults(results) {
+            const statusText = document.getElementById('status-text');
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // Map Hand Position (Wrist)
+                const wrist = landmarks[0];
+                handPosition.x = -(wrist.x - 0.5) * 8; 
+                handPosition.y = (wrist.y - 0.5) * 6; // Invert Y for screen coords
+                handPosition.z = -wrist.z * 2;
+
+                // Finger Count Logic
+                const thumbsUp = landmarks[4].y < landmarks[3].y;
+                const indexUp = landmarks[8].y < landmarks[6].y;
+                const middleUp = landmarks[12].y < landmarks[10].y;
+                const ringUp = landmarks[16].y < landmarks[14].y;
+                const pinkyUp = landmarks[20].y < landmarks[18].y;
+
+                fingerCount = 0;
+                if (thumbsUp) fingerCount++;
+                if (indexUp) fingerCount++;
+                if (middleUp) fingerCount++;
+                if (ringUp) fingerCount++;
+                if (pinkyUp) fingerCount++;
+
+                // Pinch
+                const thumbTip = landmarks[4];
+                const indexTip = landmarks[8];
+                const dist = Math.sqrt(
+                    Math.pow(thumbTip.x - indexTip.x, 2) + 
+                    Math.pow(thumbTip.y - indexTip.y, 2)
+                );
+                pinchActive = dist < 0.06;
+
+                // Determine Shape
+                let newShape = currentShape;
+                if (pinchActive) newShape = 'firework';
+                else if (fingerCount === 0) newShape = 'smoke';
+                else if (fingerCount === 1) newShape = 'heart';
+                else if (fingerCount === 2) newShape = 'flower';
+                else if (fingerCount === 3) newShape = 'saturn';
+                else if (fingerCount >= 4) newShape = 'expand';
+
+                if (newShape !== currentShape) {
+                    currentShape = newShape;
+                    setShapeTarget(currentShape);
+                    statusText.innerText = "Mode: " + currentShape.toUpperCase();
+                }
+
+            } else {
+                handPosition.set(1000, 1000, 1000); // Move hand away
+                statusText.innerText = "Status: Show hand";
+            }
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const positionsArr = geometry.attributes.position.array;
+            const colorsArr = geometry.attributes.color.array;
+
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const i3 = i * 3;
+
+                // Movement Lerp
+                positionsArr[i3] += (targetPositions[i3] - positionsArr[i3]) * 0.05;
+                positionsArr[i3 + 1] += (targetPositions[i3 + 1] - positionsArr[i3 + 1]) * 0.05;
+                positionsArr[i3 + 2] += (targetPositions[i3 + 2] - positionsArr[i3 + 2]) * 0.05;
+
+                // Hand Interaction (Repel)
+                if (isExperienceStarted) {
+                    const dx = positionsArr[i3] - handPosition.x;
+                    const dy = positionsArr[i3 + 1] - handPosition.y;
+                    const dz = positionsArr[i3 + 2] - handPosition.z;
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+                    if (dist < 2.0) {
+                        const force = (2.0 - dist) * 0.08;
+                        positionsArr[i3] += dx * force;
+                        positionsArr[i3 + 1] += dy * force;
+                        positionsArr[i3 + 2] += dz * force;
+                    }
+                }
+
+                // Colors
+                if (currentShape === 'heart') {
+                    colorsArr[i3] = 1.0; colorsArr[i3+1] = 0.2; colorsArr[i3+2] = 0.4;
+                } else if (currentShape === 'flower') {
+                    colorsArr[i3] = 1.0; colorsArr[i3+1] = 0.5; colorsArr[i3+2] = 0.8;
+                } else if (currentShape === 'saturn') {
+                     colorsArr[i3] = 0.6; colorsArr[i3+1] = 0.8; colorsArr[i3+2] = 1.0;
+                } else if (currentShape === 'expand') {
+                    const hue = (Math.atan2(positionsArr[i3+1], positionsArr[i3] + Math.PI) / (Math.PI * 2));
+                    const c = new THREE.Color().setHSL(hue, 1, 0.5);
+                    colorsArr[i3] = c.r; colorsArr[i3+1] = c.g; colorsArr[i3+2] = c.b;
+                } else {
+                    colorsArr[i3] = 0.4; colorsArr[i3+1] = 0.8; colorsArr[i3+2] = 1.0; // Cyan smoke
+                }
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.color.needsUpdate = true;
+
+            // Slow rotation
+            particles.rotation.y += 0.0005;
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- Resize ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start Loop immediately (background works before camera)
+        animate();
+
+    </script>
+</body>
+</html>
